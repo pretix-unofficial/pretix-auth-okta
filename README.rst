@@ -1,5 +1,5 @@
 Okta Authentication
-==========================
+===================
 
 This is a plugin for `pretix`_. 
 
@@ -10,7 +10,7 @@ Production setup
 
 As this is not on PyPI for now, install from git::
 
-    pip install git+https://github.com/pretix/pretix-auth-okta.git@master#egg=pretix-auth-okta
+    pip install git+https://github.com/pretix/pretix-auth-okta.git@main#egg=pretix-auth-okta
 
 Configuration
 -------------
