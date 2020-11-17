@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -12,4 +14,11 @@ class OktaAuthBackend(BaseAuthBackend):
         return settings.CONFIG_FILE.get('pretix_auth_okta', 'label', fallback='Okta')
 
     def authentication_url(self, request):
-        return reverse('plugins:pretix_auth_okta:start')
+        u = reverse('plugins:pretix_auth_okta:start')
+        if 'next' in request.GET:
+            u += '?next=' + quote(request.GET.get('next'))
+        return u
+
+    def get_next_url(self, request):
+        if hasattr(request, '_okta_next'):
+            return request._okta_next

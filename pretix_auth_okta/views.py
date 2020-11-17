@@ -24,7 +24,7 @@ def start_view(request):
     ).format(
         client_id=settings.CONFIG_FILE.get('pretix_auth_okta', 'client_id'),
         nonce=request.session['pretix_auth_okta_nonce'],
-        state=request.session['pretix_auth_okta_nonce'],
+        state=quote(request.session['pretix_auth_okta_nonce'] + '#' + request.GET.get('next', '')),
         redirect_uri=quote(build_absolute_uri('plugins:pretix_auth_okta:return'))
     )
     return redirect(url)
@@ -36,6 +36,19 @@ def return_view(request):
         logger.warning('Okta login failed. Response: ' + request.META['QUERY_STRING'])
         messages.error(request, _('Login was not successful. Error: {message}').format(message=request.GET.get('error_description')))
         return redirect(reverse('control:auth.login'))
+
+    if 'state' not in request.GET:
+        logger.exception('Okta login did not send a state.')
+        messages.error(request, _('Login was not successful due to a technical error.'))
+        return redirect(reverse('control:auth.login'))
+
+    nonce, next = request.GET['state'].split('#')
+    if nonce != request.session['pretix_auth_okta_nonce']:
+        logger.exception('Okta login sent an invalid nonce in the state parameter.')
+        messages.error(request, _('Login request timed out, please try again.'))
+        return redirect(reverse('control:auth.login'))
+    if next:
+        request._okta_next = next
 
     try:
         r = requests.post(
