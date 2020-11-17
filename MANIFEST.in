@@ -1,0 +1,3 @@
+recursive-include pretix_auth_okta/static *
+recursive-include pretix_auth_okta/templates *
+recursive-include pretix_auth_okta/locale *
