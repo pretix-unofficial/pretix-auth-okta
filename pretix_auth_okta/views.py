@@ -7,9 +7,10 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.crypto import get_random_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pretix.base.models import User
+from pretix.base.models.auth import EmailAddressTakenError
 from pretix.control.views.auth import process_login
 from pretix.helpers.urls import build_absolute_uri
 
@@ -78,16 +79,24 @@ def return_view(request):
         messages.error(request, _('Login was not successful due to a technical error.'))
         return redirect(reverse('control:auth.login'))
 
-    u, created = User.objects.get_or_create(
-        email=response['email'],
-        defaults={
-            'fullname': '{} {}'.format(
-                response.get('given_name', ''),
-                response.get('family_name', ''),
-            ),
-            'locale': response.get('locale').lower()[:2],
-            'timezone': response.get('zoneinfo', 'UTC'),
-            'auth_backend': 'okta'
-        }
-    )
-    return process_login(request, u, keep_logged_in=False)
+    try:
+        u = User.objects.get_or_create_for_backend(
+            'okta', response['sub'], response['email'],
+            set_always={},
+            set_on_creation={
+                'fullname': '{} {}'.format(
+                    response.get('given_name', ''),
+                    response.get('family_name', ''),
+                ),
+                'locale': response.get('locale').lower()[:2],
+                'timezone': response.get('zoneinfo', 'UTC'),
+            }
+        )
+    except EmailAddressTakenError:
+        messages.error(
+            request, _('We cannot create your user account as a user account in this system '
+                       'already exists with the same email address.')
+        )
+        return redirect(reverse('control:auth.login'))
+    else:
+        return process_login(request, u, keep_logged_in=False)
