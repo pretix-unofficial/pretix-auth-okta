@@ -1,6 +1,4 @@
 import logging
-from urllib.parse import quote
-
 import requests
 from django.conf import settings
 from django.contrib import messages
@@ -8,11 +6,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
-
 from pretix.base.models import User
 from pretix.base.models.auth import EmailAddressTakenError
 from pretix.control.views.auth import process_login
 from pretix.helpers.urls import build_absolute_uri
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 

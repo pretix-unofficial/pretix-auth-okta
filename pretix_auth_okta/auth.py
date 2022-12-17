@@ -1,9 +1,7 @@
-from urllib.parse import quote
-
 from django.conf import settings
 from django.urls import reverse
-
 from pretix.base.auth import BaseAuthBackend
+from urllib.parse import quote
 
 
 class OktaAuthBackend(BaseAuthBackend):
