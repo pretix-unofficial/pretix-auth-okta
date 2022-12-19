@@ -9,6 +9,7 @@ from . import __version__
 
 
 class PluginApp(PluginConfig):
+    default = True
     name = 'pretix_auth_okta'
     verbose_name = 'Okta Authentication'
 
